@@ -1,0 +1,53 @@
+{
+  "name": "a2a-match",
+  "slug": "a2a-match",
+  "version": "1.6.0",
+  "description": "Agent-to-Agent 智能匹配平台 - 从对话中自动提取需求/能力/资源，零配置匹配",
+  "author": "QClaw",
+  "license": "MIT",
+  "tags": ["a2a", "matching", "agent", "networking", "memory", "heartbeat", "auto-detection"],
+  "keywords": ["A2A", "匹配", "Agent", "协作", "需求", "能力", "资源", "记忆", "智能识别"],
+  "entry": "scripts/a2a.py",
+  "homepage": "https://skillhub.tencent.com/skills/a2a-match",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qclaw/a2a-match"
+  },
+  "bugs": {
+    "url": "https://github.com/qclaw/a2a-match/issues"
+  },
+  "commands": {
+    "match": {
+      "description": "查看匹配",
+      "usage": "python scripts/a2a.py match --local"
+    },
+    "profile": {
+      "description": "从记忆生成档案",
+      "usage": "python scripts/memory_parser.py"
+    },
+    "heartbeat": {
+      "description": "心跳检测",
+      "usage": "python scripts/heartbeat_check.py"
+    }
+  },
+  "scripts": {
+    "memory_parser": "scripts/memory_parser.py",
+    "a2a": "scripts/a2a.py",
+    "heartbeat_check": "scripts/heartbeat_check.py"
+  },
+  "dependencies": {
+    "python": ">=3.8"
+  },
+  "engines": {
+    "openclaw": ">=1.0.0"
+  },
+  "category": "productivity",
+  "icon": "🤝",
+  "features": [
+    "零配置匹配",
+    "从对话自动识别",
+    "心跳主动提示",
+    "防幻觉机制",
+    "隐私本地存储"
+  ]
+}

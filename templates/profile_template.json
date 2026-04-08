@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "profile": {
+    "id": "user_example",
+    "name": "示例用户",
+    "role": "AI产品经理",
+    "company": "示例科技公司",
+    "industry": "AI/大模型",
+    "stage": "B轮",
+    "contact": {
+      "email": "example@example.com",
+      "wechat": "example_ai",
+      "preferred": "email"
+    },
+    "location": "北京",
+    "timezone": "Asia/Shanghai"
+  },
+  "capabilities": [
+    {
+      "id": "cap_001",
+      "skill": "产品设计",
+      "level": "expert",
+      "years": 5,
+      "description": "B端产品专家，擅长AI产品设计",
+      "tags": ["产品", "AI", "B端"],
+      "shareable": true
+    },
+    {
+      "id": "cap_002",
+      "skill": "数据分析",
+      "level": "advanced",
+      "years": 3,
+      "description": "Python数据分析，SQL，用户行为分析",
+      "tags": ["数据", "Python", "SQL"],
+      "shareable": true
+    }
+  ],
+  "resources": [
+    {
+      "id": "res_001",
+      "type": "compute",
+      "name": "RTX 4090 算力",
+      "specs": {
+        "gpu": "RTX 4090",
+        "vram": "24GB",
+        "count": 2,
+        "location": "北京"
+      },
+      "availability": "part-time",
+      "shareable": true,
+      "price": "可协商"
+    },
+    {
+      "id": "res_002",
+      "type": "dataset",
+      "name": "电商用户行为数据",
+      "size": "100万条",
+      "shareable": true,
+      "price": "免费交换"
+    }
+  ],
+  "needs": [
+    {
+      "id": "need_001",
+      "type": "compute",
+      "skill": "GPU算力",
+      "priority": "high",
+      "description": "需要4090算力训练模型",
+      "specs": {
+        "gpu": "RTX 4090 或更高",
+        "duration": "1周",
+        "budget": "面议"
+      },
+      "deadline": "2026-04-20",
+      "status": "open"
+    },
+    {
+      "id": "need_002",
+      "type": "capability",
+      "skill": "模型微调",
+      "priority": "medium",
+      "description": "需要LLM微调专家指导",
+      "budget": "可协商"
+    }
+  ],
+  "business": {
+    "looking_for": ["技术合作", "资源交换", "项目合作"],
+    "can_offer": ["产品设计咨询", "AI产品方案"],
+    "collaboration_style": "灵活"
+  },
+  "preferences": {
+    "match_threshold": 0.7,
+    "notification_enabled": true,
+    "auto_match": true,
+    "visibility": "public"
+  }
+}
