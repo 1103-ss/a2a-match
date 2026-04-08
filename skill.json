@@ -1,10 +1,13 @@
 {
   "name": "a2a-match",
   "slug": "a2a-match",
-  "version": "1.6.0",
+  "version": "1.8.3",
   "description": "Agent-to-Agent 智能匹配平台 - 从对话中自动提取需求/能力/资源，零配置匹配",
   "author": "QClaw",
   "license": "MIT",
+  "support": {
+    "qq_group": "962354006"
+  },
   "tags": ["a2a", "matching", "agent", "networking", "memory", "heartbeat", "auto-detection"],
   "keywords": ["A2A", "匹配", "Agent", "协作", "需求", "能力", "资源", "记忆", "智能识别"],
   "entry": "scripts/a2a.py",
