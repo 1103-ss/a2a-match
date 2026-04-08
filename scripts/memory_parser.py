@@ -41,22 +41,40 @@ class MemoryParser:
     """记忆解析器 - 从记忆文件提取结构化信息"""
 
     # 需求信号模式（只匹配明确的表述）
+    # 格式: (pattern, confidence, need_type)
+    # need_type: resource(需要资源本身) / capability(需要能力服务) / consulting(需要咨询建议)
     NEED_PATTERNS = [
-        # 非常明确的信号
-        (r"需要(.{2,20})(?:资源|支持|帮助)", 0.95),
-        (r"寻找(.{2,20})(?:合作|团队|伙伴)", 0.90),
-        (r"求(.{2,20})(?:资源|渠道|人)", 0.90),
-        (r"在找(.{2,20})", 0.85),
-        (r"缺少(.{2,20})", 0.85),
-        (r"缺(.{2,20})", 0.80),
-
-        # 工作相关
-        (r"需要.*开发.{0,10}团队", 0.90),
-        (r"需要.*设计.{0,10}支持", 0.90),
-        (r"需要.*推广.{0,10}渠道", 0.85),
-        (r"需要.*流量", 0.85),
-        (r"需要.*算力", 0.90),
-        (r"需要.*货源", 0.85),
+        # 资源类需求（需要实际的资源）
+        (r"需要(.{2,20})资源", 0.95, "resource"),
+        (r"求(.{2,20})资源", 0.95, "resource"),
+        (r"缺少(.{2,20})资源", 0.90, "resource"),
+        (r"在找(.{2,20})资源", 0.90, "resource"),
+        (r"需要(.{2,10})算力", 0.95, "resource"),
+        (r"需要(.{2,10})服务器", 0.95, "resource"),
+        (r"需要(.{2,10})流量", 0.90, "resource"),
+        (r"需要(.{2,10})货源", 0.90, "resource"),
+        (r"需要(.{2,10})数据", 0.90, "resource"),
+        
+        # 能力类需求（需要人帮忙做某事）
+        (r"需要(.{2,20})支持", 0.95, "capability"),
+        (r"需要(.{2,20})帮助", 0.95, "capability"),
+        (r"寻找(.{2,20})(?:合作|团队|伙伴)", 0.90, "capability"),
+        (r"求(.{2,20})(?:渠道|人)", 0.85, "capability"),
+        (r"需要.*开发.{0,10}团队", 0.90, "capability"),
+        (r"需要.*设计.{0,10}支持", 0.90, "capability"),
+        (r"需要.*运维.{0,10}支持", 0.90, "capability"),
+        (r"需要.*推广.{0,10}渠道", 0.85, "capability"),
+        
+        # 咨询类需求（需要建议/咨询）
+        (r"需要(.{2,20})建议", 0.90, "consulting"),
+        (r"需要(.{2,20})咨询", 0.90, "consulting"),
+        (r"求(.{2,20})建议", 0.85, "consulting"),
+        
+        # 通用需求（需根据内容判断）
+        (r"在找(.{2,20})", 0.80, "auto"),
+        (r"缺少(.{2,20})", 0.80, "auto"),
+        (r"缺(.{2,20})", 0.75, "auto"),
+        (r"需要(.{2,20})", 0.70, "auto"),
     ]
 
     # 能力信号模式
@@ -128,8 +146,15 @@ class MemoryParser:
         """从文本中提取信息"""
         results = []
 
-        # 提取需求
-        for pattern, confidence in self.NEED_PATTERNS:
+        # 提取需求（带类型）
+        for pattern_data in self.NEED_PATTERNS:
+            # 支持新旧格式
+            if len(pattern_data) == 3:
+                pattern, confidence, need_type = pattern_data
+            else:
+                pattern, confidence = pattern_data
+                need_type = "capability"  # 默认类型
+            
             matches = re.finditer(pattern, text, re.IGNORECASE)
             for match in matches:
                 # 跳过太短的匹配
@@ -137,6 +162,10 @@ class MemoryParser:
                     continue
 
                 content = match.group(1).strip() if match.lastindex else match.group(0)
+                
+                # 自动推断类型
+                if need_type == "auto":
+                    need_type = self._infer_need_type(content)
 
                 results.append(ExtractedInfo(
                     type="need",
@@ -146,6 +175,9 @@ class MemoryParser:
                     context=match.group(0),
                     date=self._extract_date(source)
                 ))
+                
+                # 存储 need_type 到 ExtractedInfo
+                results[-1].need_type = need_type
 
         # 提取能力
         for pattern, confidence in self.CAPABILITY_PATTERNS:
@@ -173,6 +205,9 @@ class MemoryParser:
             matches = re.finditer(pattern, text, re.IGNORECASE)
             for match in matches:
                 content = match.group(1).strip() if match.lastindex else match.group(0)
+                
+                # 推断资源类型
+                res_type = self._infer_resource_type(content)
 
                 results.append(ExtractedInfo(
                     type="resource",
@@ -182,6 +217,9 @@ class MemoryParser:
                     context=match.group(0),
                     date=self._extract_date(source)
                 ))
+                
+                # 存储 res_type 到 ExtractedInfo
+                results[-1].res_type = res_type
 
         # 提取职业信息
         for pattern, confidence in self.PROFILE_PATTERNS:
@@ -199,6 +237,52 @@ class MemoryParser:
                 ))
 
         return results
+
+    def _infer_need_type(self, content: str) -> str:
+        """根据内容推断需求类型"""
+        resource_keywords = ['算力', '服务器', '机器', 'GPU', 'CPU', '流量', '数据', '资源', 
+                           '货源', '场地', '设备', '资金', '投资']
+        capability_keywords = ['开发', '设计', '运维', '推广', '运营', '写', '做', '帮忙',
+                              '支持', '帮助', '合作', '团队']
+        consulting_keywords = ['建议', '咨询', '指导', '方案', '选型', '规划']
+        
+        content_lower = content.lower()
+        
+        for kw in resource_keywords:
+            if kw in content_lower:
+                return "resource"
+        
+        for kw in consulting_keywords:
+            if kw in content_lower:
+                return "consulting"
+        
+        for kw in capability_keywords:
+            if kw in content_lower:
+                return "capability"
+        
+        return "capability"  # 默认
+
+    def _infer_resource_type(self, content: str) -> str:
+        """根据内容推断资源类型"""
+        compute_keywords = ['GPU', 'CPU', '算力', '服务器', '机器', 'RTX', 'GTX', 'A100', 'H100', '4090']
+        data_keywords = ['数据', '数据集', '语料', '用户', '流量', '粉丝']
+        tool_keywords = ['工具', '软件', '账号', 'API', 'key']
+        
+        content_lower = content.lower()
+        
+        for kw in compute_keywords:
+            if kw.lower() in content_lower:
+                return "compute"
+        
+        for kw in data_keywords:
+            if kw in content_lower:
+                return "data"
+        
+        for kw in tool_keywords:
+            if kw in content_lower:
+                return "tool"
+        
+        return "other"
 
     def _clean_content(self, text: str) -> str:
         """清理提取的内容"""
@@ -337,9 +421,11 @@ class MemoryParser:
         # 处理需求
         for need in extractions["needs"]:
             if need.confidence >= 0.80:
+                need_type = getattr(need, 'need_type', 'capability')  # 默认为 capability
                 profile["needs"].append({
                     "id": f"need_{os.urandom(3).hex()}",
                     "description": need.content,
+                    "type": need_type,  # resource / capability / consulting
                     "confidence": round(need.confidence, 2),
                     "source": need.source,
                     "status": "open"
@@ -348,9 +434,11 @@ class MemoryParser:
         # 处理资源
         for res in extractions["resources"]:
             if res.confidence >= 0.80:
+                res_type = getattr(res, 'res_type', 'other')  # 默认为 other
                 profile["resources"].append({
                     "id": f"res_{os.urandom(3).hex()}",
                     "name": res.content,
+                    "type": res_type,  # compute / data / tool / other
                     "confidence": round(res.confidence, 2),
                     "source": res.source,
                     "available": True
