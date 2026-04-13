@@ -441,7 +441,7 @@ app.post('/api/message', requireAuth, async (req, res) => {
     }
 
     // 校验未被拉黑
-    if (match.blockedBy === fromUserId) {
+    if (match.blockedBy === toUserId) {
       return res.status(403).json({ error: '你已被对方屏蔽' });
     }
 
