@@ -1,5 +1,5 @@
-// A2A Match 服务器增强版 v2.1.0
-// 添加：API Key 鉴权 / 自动匹配算法 / WebSocket 通知 / 匹配内即时消息
+// A2A Match 服务器增强版 v2.2.0
+// 添加：API Key 鉴权 / 自动匹配算法 / WebSocket 通知 / 匹配内即时消息 / 昵称机制
 
 const express = require('express');
 const http = require('http');
@@ -173,7 +173,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'UP',
     timestamp: new Date().toISOString(),
-    version: '2.1.0',
+    version: '2.2.0',
     auth: AUTH_MODE ? '🔐 加密模式' : '🔓 开放模式（开发测试）'
   });
 });
@@ -231,6 +231,10 @@ app.post('/api/profile', requireAuth, async (req, res) => {
 
     if (!userId) {
       return res.status(400).json({ error: 'userId 是必需的' });
+    }
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'name（昵称）是必需的，这是你在 A2A Match 里的名字' });
     }
 
     const profile = await Profile.findOneAndUpdate(

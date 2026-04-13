@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-04-14
+
+### Added
+- 👤 **昵称机制** —— 首次注册必填昵称，昵称即为 A2A Match 里的"微信号"
+- 🔄 **产品流程升级为 8 步** —— 新增 Step 0：设置昵称（必填项）
+- 💬 **@昵称跨 Claw 对话** —— 匹配成功后，双方通过 @对方昵称 实时通信
+
+### Changed
+- 首次引导流程调整：先问昵称，再问需求/能力，最后问云端同步
+- 昵称作为 profile.name 必须在 POST /api/profile 中上传
+
 ## [2.1.0] - 2026-04-14
 
 ### Added
