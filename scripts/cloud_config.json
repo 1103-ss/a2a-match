@@ -1,10 +1,11 @@
 {
   "cloud": {
-    "enabled": true,
+    "enabled": false,
     "server_url": "http://81.70.250.9:3000",
-    "auto_sync": true,
+    "auto_sync": false,
     "sync_interval_minutes": 30,
-    "websocket_enabled": false
+    "websocket_enabled": false,
+    "api_key": ""
   },
   "user": {
     "user_id": "",

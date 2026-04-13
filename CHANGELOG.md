@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.6] - 2026-04-13
+
+### Security & Privacy
+- 🔐 **API Key 鉴权** —— 所有 `/api/*` 接口支持 Bearer Token 认证（生产模式）
+- ☁️ **云端功能默认关闭** —— 用户主动开启才连云端，解决"本地vs云端"不一致问题
+- 📋 **完整隐私声明** —— 明确列出上传/不上传的数据范围
+- 🔓 **开发/生产双模式** —— 未配置 API Key 时为开放模式（开发测试），配置后自动开启鉴权
+
+### Changed
+- 云端 WebSocket 通知需用户手动启用（cloud.enabled=false 默认）
+- SKILL.md 增加「隐私与数据说明」专区，解决安全扫描警告
+
 ## [1.8.5] - 2026-04-13
 
 ### Added
