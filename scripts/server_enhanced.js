@@ -278,14 +278,40 @@ app.get('/api/matches/:userId', requireAuth, async (req, res) => {
 
 app.post('/api/match/:id/accept', requireAuth, async (req, res) => {
   try {
-    const match = await Match.findByIdAndUpdate(
-      req.params.id, { status: 'accepted' }, { new: true }
-    );
+    const match = await Match.findById(req.params.id);
     if (!match) {
       return res.status(404).json({ error: '匹配不存在' });
     }
-    io.emit('match_accepted', { matchId: req.params.id, match });
-    res.json(match);
+
+    // 检查是否已有另一方接受了
+    const otherAccepted = match.acceptedBy && match.acceptedBy !== req.body.userId;
+
+    // 记录接受方
+    if (!match.acceptedBy) {
+      match.acceptedBy = req.body.userId;
+    }
+
+    // 判断是否双向接受
+    if (otherAccepted) {
+      match.status = 'accepted';
+      // 触发 contact exchange
+      io.emit('match_accepted', {
+        matchId: req.params.id,
+        match: await match.save()
+      });
+    } else {
+      await match.save();
+    }
+
+    const updated = await Match.findById(req.params.id);
+
+    // 返回结果，附带是否双向接受
+    res.json({
+      ...updated.toObject(),
+      mutualAccepted: otherAccepted || (match.acceptedBy && match.acceptedBy === req.body.userId && updated.status === 'accepted'),
+      waitingForOther: !otherAccepted && updated.status === 'pending'
+    });
+
   } catch (err) {
     res.status(500).json({ error: '接受匹配失败' });
   }
@@ -302,6 +328,70 @@ app.post('/api/match/:id/reject', requireAuth, async (req, res) => {
     res.json(match);
   } catch (err) {
     res.status(500).json({ error: '拒绝匹配失败' });
+  }
+});
+
+// 互换联系方式（双方都接受后可用）
+app.get('/api/match/:id/contact', requireAuth, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    if (!match) {
+      return res.status(404).json({ error: '匹配不存在' });
+    }
+    if (match.status !== 'accepted') {
+      return res.status(400).json({ error: '双方尚未互相接受，无法获取联系方式' });
+    }
+
+    const userId1 = match.userId1;
+    const userId2 = match.userId2;
+
+    const [profile1, profile2] = await Promise.all([
+      Profile.findOne({ userId: userId1 }),
+      Profile.findOne({ userId: userId2 })
+    ]);
+
+    // 只有标记了 contact_share 的才返回完整联系方式
+    const formatContact = (p, isSelf) => ({
+      userId: p.userId,
+      name: p.name,
+      role: p.role || '',
+      industry: p.industry || '',
+      contact: isSelf ? p.contact : (p.contact_share ? p.contact : { preferred: 'email' })
+    });
+
+    res.json({
+      status: 'success',
+      mutualAccepted: true,
+      contact: {
+        user1: profile1 ? formatContact(profile1, req.headers['x-user-id'] === userId1) : null,
+        user2: profile2 ? formatContact(profile2, req.headers['x-user-id'] === userId2) : null
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: '获取联系方式失败' });
+  }
+});
+
+// 更新档案时附带联系方式设置
+app.patch('/api/profile/:userId/contact', requireAuth, async (req, res) => {
+  try {
+    const { contact, contact_share } = req.body;
+    const update = {};
+    if (contact) update['contact'] = contact;
+    if (typeof contact_share === 'boolean') update['contact_share'] = contact_share;
+
+    const profile = await Profile.findOneAndUpdate(
+      { userId: req.params.userId },
+      update,
+      { new: true }
+    );
+    if (!profile) {
+      return res.status(404).json({ error: '档案不存在' });
+    }
+    res.json({ status: 'success', profile });
+  } catch (err) {
+    res.status(500).json({ error: '更新联系方式失败' });
   }
 });
 
