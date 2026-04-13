@@ -1,15 +1,15 @@
-{
+﻿{
   "name": "a2a-match",
   "slug": "a2a-match",
-  "version": "1.8.4",
-  "description": "Agent-to-Agent 智能匹配平台 - 从对话中自动提取需求/能力/资源，零配置匹配",
+  "version": "1.8.5",
+  "description": "Agent-to-Agent 鏅鸿兘鍖归厤骞冲彴 - 浠庡璇濅腑鑷姩鎻愬彇闇€姹?鑳藉姏/璧勬簮锛岄浂閰嶇疆鍖归厤",
   "author": "QClaw",
   "license": "MIT",
   "support": {
     "qq_group": "962354006"
   },
   "tags": ["a2a", "matching", "agent", "networking", "memory", "heartbeat", "auto-detection"],
-  "keywords": ["A2A", "匹配", "Agent", "协作", "需求", "能力", "资源", "记忆", "智能识别"],
+  "keywords": ["A2A", "鍖归厤", "Agent", "鍗忎綔", "闇€姹?, "鑳藉姏", "璧勬簮", "璁板繂", "鏅鸿兘璇嗗埆"],
   "entry": "scripts/a2a.py",
   "homepage": "https://skillhub.tencent.com/skills/a2a-match",
   "repository": {
@@ -21,27 +21,27 @@
   },
   "commands": {
     "match": {
-      "description": "查看匹配",
+      "description": "鏌ョ湅鍖归厤",
       "usage": "python scripts/a2a.py match --local"
     },
     "profile": {
-      "description": "从记忆生成档案",
+      "description": "浠庤蹇嗙敓鎴愭。妗?,
       "usage": "python scripts/memory_parser.py"
     },
     "heartbeat": {
-      "description": "心跳检测",
+      "description": "蹇冭烦妫€娴?,
       "usage": "python scripts/heartbeat_check.py"
     },
     "cloud-status": {
-      "description": "查看云端状态",
+      "description": "鏌ョ湅浜戠鐘舵€?,
       "usage": "python scripts/cloud_sync.py status"
     },
     "cloud-sync": {
-      "description": "同步档案到云端",
+      "description": "鍚屾妗ｆ鍒颁簯绔?,
       "usage": "python scripts/cloud_sync.py sync"
     },
     "cloud-matches": {
-      "description": "查看云端匹配",
+      "description": "鏌ョ湅浜戠鍖归厤",
       "usage": "python scripts/cloud_sync.py matches"
     }
   },
@@ -60,12 +60,13 @@
     "openclaw": ">=1.0.0"
   },
   "category": "productivity",
-  "icon": "🤝",
+  "icon": "馃",
   "features": [
-    "零配置匹配",
-    "从对话自动识别",
-    "心跳主动提示",
-    "防幻觉机制",
-    "隐私本地存储"
+    "闆堕厤缃尮閰?,
+    "浠庡璇濊嚜鍔ㄨ瘑鍒?,
+    "蹇冭烦涓诲姩鎻愮ず",
+    "闃插够瑙夋満鍒?,
+    "闅愮鏈湴瀛樺偍"
   ]
 }
+
