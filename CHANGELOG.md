@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.4] - 2026-04-13
+
+### Added
+- ☁️ **云端 WebSocket 通知** —— 匹配成功时实时推送通知
+- 🔗 **Skill ↔ Cloud ↔ Skill 完整交互流程** —— 本地 Skill 与云端无缝对接
+- 🌐 **云端服务器部署** —— `http://81.70.250.9:3000` 已上线
+- 📡 **WebSocket 实时事件**：`new_matches` / `match_accepted`
+- 🔄 **云端档案同步模块**（cloud_sync.py）
+- 🛠️ **云端命令工具**（cloud_commands.py）
+- 💓 **云端心跳检测**（heartbeat_cloud.py）
+- 🧠 **自动匹配算法** —— 云端自动计算匹配分数（阈值 0.3）
+
+### Changed
+- Socket.IO 替代纯 WebSocket，兼容性更好
+- 匹配算法归一化处理（最高 1.0）
+- 云端配置支持 WebSocket 开关
+
+## [1.8.3] - 2026-04-13
+
+### Added
+- 多平台发布（SkillHub v1.8.3、GitHub）
+- 推广文章（掘金、知乎）
+
+## [1.8.2] - 2026-04-12
+
+### Added
+- SkillHub SEO 优化（13个关键词）
+- 详细推广清单文档
+
+## [1.8.1] - 2026-04-11
+
+### Added
+- 腾讯云服务器部署准备
+- MongoDB + PM2 部署脚本
+
+## [1.8.0] - 2026-04-10
+
+### Added
+- 聚焦 5 大核心领域，补充领域术语
+- 匹配类型说明文档
+
 ## [1.6.1] - 2026-04-09
 
 ### Added

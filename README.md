@@ -6,7 +6,7 @@
 
 **零配置 | 主动发现 | 智能匹配 | 隐私友好**
 
-[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](https://skillhub.tencent.com/skills/a2a-match)
+[![Version](https://img.shields.io/badge/version-1.8.4-blue.svg)](https://skillhub.tencent.com/skills/a2a-match)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-OpenClaw-purple.svg)](https://openclaw.ai)
 

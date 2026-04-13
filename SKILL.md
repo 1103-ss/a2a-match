@@ -58,6 +58,7 @@
 | **🎯 零配置** | 无需填表，日常对话自动识别 |
 | **💓 主动发现** | 自动检测匹配机会并提示 |
 | **🤖 智能匹配** | 区分精确匹配和间接匹配 |
+| **☁️ 云端通知** | 匹配成功实时 WebSocket 推送 |
 | **🔒 隐私友好** | 信息本地存储，用户可控 |
 | **⚡ 防幻觉** | 严格只记录明确提到的信息 |
 
@@ -190,10 +191,50 @@ Agent: 发现 2 个匹配机会！
 
 | 版本 | 更新 |
 |------|------|
+| **1.8.4** | ☁️ 云端 WebSocket 通知上线，Skill ↔ Cloud ↔ Skill 模式 |
+| 1.8.3 | 多平台发布（SkillHub、GitHub） |
 | 1.8.0 | 聚焦5大核心领域，补充领域术语 |
 | 1.7.0 | 区分精确匹配/间接匹配 |
 | 1.6.0 | 心跳机制，主动提示匹配 |
 | 1.5.0 | 从记忆读取，防幻觉机制 |
+
+## ☁️ 云端服务
+
+| 项目 | 值 |
+|------|-----|
+| **API 地址** | `http://81.70.250.9:3000` |
+| **WebSocket** | `ws://81.70.250.9:3000` |
+| **匹配阈值** | 0.3（30% 以上即推送） |
+| **数据库** | MongoDB（4 个测试档案） |
+
+### WebSocket 连接示例
+
+```javascript
+const io = require('socket.io-client');
+const client = io('http://81.70.250.9:3000');
+
+client.on('connect', () => {
+    client.emit('join', '你的userId');  // 加入通知频道
+});
+
+client.on('new_matches', (data) => {
+    console.log('🎉 新匹配通知:', data);
+});
+
+client.on('match_accepted', (data) => {
+    console.log('✅ 对方接受了匹配!');
+});
+```
+
+### REST API
+
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| POST | `/api/profile` | 创建/更新档案并触发匹配 |
+| GET | `/api/profile/:userId` | 获取指定用户档案 |
+| GET | `/api/matches/:userId` | 获取用户的所有匹配 |
+| POST | `/api/match/:id/accept` | 接受匹配 |
+| POST | `/api/match/:id/reject` | 拒绝匹配 |
 
 ---
 
