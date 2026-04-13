@@ -73,3 +73,4 @@ a2a/cache/*.json
 a2a/notifications.json
 a2a/heartbeat_state.json
 *.pyc
+_tmp.py
