@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-04-14
+
+### Added
+- 💬 **匹配内即时消息** —— 匹配成功后双方可通过 `@对方昵称` 在 Claw 对话框内直接聊天
+- 📨 **消息 API** —— POST /api/message 发送、GET /api/messages/:userId 接收、POST /api/messages/read 标记已读
+- 💾 **消息持久化** —— MongoDB 存储聊天记录，支持查询历史
+- 🚫 **屏蔽功能** —— POST /api/match/:id/block 可屏蔽对方
+- 🔔 **WebSocket new_message** —— 实时消息推送
+- 📋 **聊天记录查询** —— GET /api/match/:id/messages 查看完整聊天
+
+### Changed
+- 产品流程从 6 步升级为 7 步（新增 Step 7 即时消息）
+- SKILL.md 新增 @提及识别逻辑和消息展示格式
+
+## [2.0.1] - 2026-04-14
+
+### Changed
+- 🔒 云端同步改为首次引导时由用户明确同意才开启，不自动开启
+
 ## [1.8.6] - 2026-04-13
 
 ### Security & Privacy

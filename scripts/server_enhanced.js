@@ -1,5 +1,5 @@
-// A2A Match 服务器增强版 v1.8.6
-// 添加：API Key 鉴权 / 自动匹配算法 / WebSocket 通知
+// A2A Match 服务器增强版 v2.1.0
+// 添加：API Key 鉴权 / 自动匹配算法 / WebSocket 通知 / 匹配内即时消息
 
 const express = require('express');
 const http = require('http');
@@ -74,11 +74,24 @@ const matchSchema = new mongoose.Schema({
   matchScore: Number,
   matchDetails: String,
   status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+  acceptedBy: String,
+  blockedBy: String,
   createdAt: { type: Date, default: Date.now }
+});
+
+const messageSchema = new mongoose.Schema({
+  matchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Match', required: true },
+  fromUserId: { type: String, required: true },
+  toUserId: { type: String, required: true },
+  content: { type: String, required: true, maxlength: 2000 },
+  read: { type: Boolean, default: false },
+  readAt: Date,
+  createdAt: { type: Date, default: Date.now, index: true }
 });
 
 const Profile = mongoose.model('Profile', profileSchema);
 const Match = mongoose.model('Match', matchSchema);
+const Message = mongoose.model('Message', messageSchema);
 
 // ==================== 匹配算法 ====================
 function calculateMatchScore(profile1, profile2) {
@@ -160,14 +173,14 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'UP',
     timestamp: new Date().toISOString(),
-    version: '1.8.6',
+    version: '2.1.0',
     auth: AUTH_MODE ? '🔐 加密模式' : '🔓 开放模式（开发测试）'
   });
 });
 
 app.get('/api/info', requireAuth, (req, res) => {
   res.json({
-    service: 'A2A Match - 智能供需匹配平台 v1.8.6',
+    service: 'A2A Match - 智能供需匹配平台 v2.1.0',
     authMode: AUTH_MODE ? '🔐 API Key 鉴权' : '🔓 开放模式（开发测试）',
     description: '零配置智能供需匹配 + 自动匹配算法 + WebSocket 实时通知',
     authRequired: AUTH_MODE,
@@ -180,10 +193,16 @@ app.get('/api/info', requireAuth, (req, res) => {
       'GET  /api/matches/:userId  [需鉴权]',
       'POST /api/match/:id/accept  [需鉴权]',
       'POST /api/match/:id/reject  [需鉴权]',
+      'POST /api/match/:id/block   [需鉴权] - 屏蔽对方',
+      'GET  /api/match/:id/contact [需鉴权]',
+      'GET  /api/match/:id/messages [需鉴权] - 聊天记录',
+      'POST /api/message     [需鉴权] - 发送消息',
+      'GET  /api/messages/:userId  [需鉴权] - 获取消息(unread=true仅未读)',
+      'POST /api/messages/read [需鉴权] - 标记已读',
       'GET  /api/profiles     [需鉴权]',
       'DELETE /api/profile/:userId [需鉴权]'
     ],
-    websocketEvents: ['join', 'new_matches', 'match_accepted'],
+    websocketEvents: ['join', 'new_matches', 'match_accepted', 'new_message'],
     setup: AUTH_MODE ? '已配置 API Key，请使用 Authorization: Bearer <key>' : '未配置 API Key（开发模式），生产环境请设置 A2A_API_KEY 环境变量'
   });
 });
@@ -395,6 +414,178 @@ app.patch('/api/profile/:userId/contact', requireAuth, async (req, res) => {
   }
 });
 
+// ==================== 即时消息系统 ====================
+
+// 发送消息（仅允许已匹配双方，且未被拉黑）
+app.post('/api/message', requireAuth, async (req, res) => {
+  try {
+    const { matchId, fromUserId, toUserId, content } = req.body;
+
+    if (!matchId || !fromUserId || !toUserId || !content || !content.trim()) {
+      return res.status(400).json({ error: 'matchId, fromUserId, toUserId, content 都是必需的' });
+    }
+
+    if (content.length > 2000) {
+      return res.status(400).json({ error: '消息内容不能超过 2000 字' });
+    }
+
+    // 校验匹配存在且双方都在其中
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ error: '匹配不存在' });
+    }
+
+    const userIds = [match.userId1, match.userId2];
+    if (!userIds.includes(fromUserId) || !userIds.includes(toUserId)) {
+      return res.status(403).json({ error: '你不是这个匹配的参与者' });
+    }
+
+    // 校验未被拉黑
+    if (match.blockedBy === fromUserId) {
+      return res.status(403).json({ error: '你已被对方屏蔽' });
+    }
+
+    // 校验状态：pending(已双向接受) 或 accepted
+    if (match.status === 'rejected') {
+      return res.status(403).json({ error: '匹配已拒绝，无法发送消息' });
+    }
+
+    // 创建消息
+    const message = await Message.create({ matchId, fromUserId, toUserId, content: content.trim() });
+
+    // WebSocket 实时推送
+    io.to(toUserId).emit('new_message', {
+      messageId: message._id,
+      matchId: matchId,
+      fromUserId: fromUserId,
+      content: content.trim(),
+      createdAt: message.createdAt
+    });
+
+    logger.info(`消息: ${fromUserId} → ${toUserId} (match: ${matchId})`);
+
+    res.json({ success: true, messageId: message._id });
+
+  } catch (err) {
+    logger.error('发送消息失败:', err);
+    res.status(500).json({ error: '发送消息失败' });
+  }
+});
+
+// 获取未读消息
+app.get('/api/messages/:userId', requireAuth, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const unreadOnly = req.query.unread === 'true';
+
+    const query = { toUserId: userId };
+    if (unreadOnly) {
+      query.read = false;
+    }
+
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate('matchId');
+
+    const enriched = await Promise.all(messages.map(async (msg) => {
+      const sender = await Profile.findOne({ userId: msg.fromUserId });
+      return {
+        messageId: msg._id,
+        matchId: msg.matchId,
+        fromUser: sender ? { userId: sender.userId, name: sender.name } : { userId: msg.fromUserId, name: '未知' },
+        content: msg.content,
+        read: msg.read,
+        createdAt: msg.createdAt
+      };
+    }));
+
+    const unreadCount = await Message.countDocuments({ toUserId: userId, read: false });
+
+    res.json({ messages: enriched, unreadCount });
+
+  } catch (err) {
+    res.status(500).json({ error: '获取消息失败' });
+  }
+});
+
+// 标记消息已读
+app.post('/api/messages/read', requireAuth, async (req, res) => {
+  try {
+    const { userId, messageIds } = req.body;
+    if (!userId || !messageIds || !Array.isArray(messageIds)) {
+      return res.status(400).json({ error: 'userId 和 messageIds (数组) 是必需的' });
+    }
+
+    await Message.updateMany(
+      { _id: { $in: messageIds }, toUserId: userId },
+      { read: true, readAt: new Date() }
+    );
+
+    res.json({ success: true, markedRead: messageIds.length });
+  } catch (err) {
+    res.status(500).json({ error: '标记已读失败' });
+  }
+});
+
+// 拉黑对方（不再接收消息）
+app.post('/api/match/:id/block', requireAuth, async (req, res) => {
+  try {
+    const match = await Match.findByIdAndUpdate(
+      req.params.id,
+      { blockedBy: req.body.userId },
+      { new: true }
+    );
+    if (!match) return res.status(404).json({ error: '匹配不存在' });
+    res.json({ success: true, message: '已屏蔽对方' });
+  } catch (err) {
+    res.status(500).json({ error: '屏蔽失败' });
+  }
+});
+
+// 获取某个匹配的聊天记录
+app.get('/api/match/:id/messages', requireAuth, async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) return res.status(400).json({ error: 'userId 是必需的' });
+
+    const match = await Match.findById(req.params.id);
+    if (!match) return res.status(404).json({ error: '匹配不存在' });
+
+    const userIds = [match.userId1, match.userId2];
+    if (!userIds.includes(userId)) {
+      return res.status(403).json({ error: '你不是这个匹配的参与者' });
+    }
+
+    const messages = await Message.find({ matchId: req.params.id })
+      .sort({ createdAt: 1 })
+      .limit(100);
+
+    // 标记为已读
+    await Message.updateMany(
+      { matchId: req.params.id, toUserId: userId, read: false },
+      { read: true, readAt: new Date() }
+    );
+
+    const otherUserId = match.userId1 === userId ? match.userId2 : match.userId1;
+    const otherProfile = await Profile.findOne({ userId: otherUserId });
+
+    res.json({
+      matchUser: otherProfile ? { userId: otherProfile.userId, name: otherProfile.name } : { userId: otherUserId },
+      messages: messages.map(m => ({
+        messageId: m._id,
+        fromUserId: m.fromUserId,
+        toUserId: m.toUserId,
+        content: m.content,
+        createdAt: m.createdAt
+      })),
+      blocked: match.blockedBy === userId
+    });
+  } catch (err) {
+    res.status(500).json({ error: '获取聊天记录失败' });
+  }
+});
+
 app.get('/api/profiles', requireAuth, async (req, res) => {
   try {
     const profiles = await Profile.find().sort({ createdAt: -1 });
@@ -432,7 +623,7 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   logger.info(`========================================`);
-  logger.info(`A2A Match 服务器 v1.8.6 启动!`);
+  logger.info(`A2A Match 服务器 v2.1.0 启动!`);
   logger.info(`端口: ${PORT}`);
   logger.info(`鉴权模式: ${AUTH_MODE ? '🔐 API Key（生产）' : '🔓 开放（开发测试）'}`);
   logger.info(`========================================`);
