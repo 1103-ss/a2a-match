@@ -1,7 +1,7 @@
 {
   "name": "a2a-match",
   "slug": "a2a-match",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Agent-to-Agent 智能匹配平台 - 从对话中自动提取需求/能力/资源，零配置匹配",
   "author": "QClaw",
   "license": "MIT",
@@ -31,12 +31,27 @@
     "heartbeat": {
       "description": "心跳检测",
       "usage": "python scripts/heartbeat_check.py"
+    },
+    "cloud-status": {
+      "description": "查看云端状态",
+      "usage": "python scripts/cloud_sync.py status"
+    },
+    "cloud-sync": {
+      "description": "同步档案到云端",
+      "usage": "python scripts/cloud_sync.py sync"
+    },
+    "cloud-matches": {
+      "description": "查看云端匹配",
+      "usage": "python scripts/cloud_sync.py matches"
     }
   },
   "scripts": {
     "memory_parser": "scripts/memory_parser.py",
     "a2a": "scripts/a2a.py",
-    "heartbeat_check": "scripts/heartbeat_check.py"
+    "heartbeat_check": "scripts/heartbeat_check.py",
+    "cloud_sync": "scripts/cloud_sync.py",
+    "cloud_commands": "scripts/cloud_commands.py",
+    "heartbeat_cloud": "scripts/heartbeat_cloud.py"
   },
   "dependencies": {
     "python": ">=3.8"

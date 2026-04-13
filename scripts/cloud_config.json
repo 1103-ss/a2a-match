@@ -1,0 +1,19 @@
+{
+  "cloud": {
+    "enabled": true,
+    "server_url": "http://81.70.250.9:3000",
+    "auto_sync": true,
+    "sync_interval_minutes": 30,
+    "websocket_enabled": false
+  },
+  "user": {
+    "user_id": "",
+    "nickname": "",
+    "last_sync": ""
+  },
+  "match": {
+    "auto_match": true,
+    "notify_on_new": true,
+    "threshold": 0.6
+  }
+}
