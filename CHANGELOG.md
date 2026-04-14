@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-04-14
+
+### Added
+- 🔌 **WebSocket 守护进程 v2.0** —— 实时监听云端事件，收到消息后立即通过 Gateway /hooks/wake 唤醒主会话
+- 📡 **Gateway Webhook 集成** —— 启用 hooks 端点，守护进程调用 /hooks/wake 实现秒级通知
+- 🐛 **Windows 兼容修复** —— subprocess.CREATE_NO_WINDOW 防止守护进程弹出控制台窗口
+
+### Fixed
+- 🔧 **skill.json 乱码修复** —— 重建 UTF-8 编码，修正中文描述
+- 📦 **ws_daemon.py 加入 Git 跟踪** —— 之前遗漏的守护进程脚本正式纳入版本管理
+
 ## [2.2.0] - 2026-04-14
 
 ### Added

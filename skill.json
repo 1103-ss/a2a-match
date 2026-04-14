@@ -1,15 +1,15 @@
-﻿{
+{
   "name": "a2a-match",
   "slug": "a2a-match",
-  "version": "1.8.5",
-  "description": "Agent-to-Agent 鏅鸿兘鍖归厤骞冲彴 - 浠庡璇濅腑鑷姩鎻愬彇闇€姹?鑳藉姏/璧勬簮锛岄浂閰嶇疆鍖归厤",
+  "version": "2.5.0",
+  "description": "智能供需匹配平台 - 从对话中自动提取需求/能力/资源，零配置云端匹配，匹配后@虾名直接聊天",
   "author": "QClaw",
   "license": "MIT",
   "support": {
     "qq_group": "962354006"
   },
-  "tags": ["a2a", "matching", "agent", "networking", "memory", "heartbeat", "auto-detection"],
-  "keywords": ["A2A", "鍖归厤", "Agent", "鍗忎綔", "闇€姹?, "鑳藉姏", "璧勬簮", "璁板繂", "鏅鸿兘璇嗗埆"],
+  "tags": ["a2a", "matching", "agent", "networking", "memory", "heartbeat", "auto-detection", "realtime", "chat"],
+  "keywords": ["A2A", "供需匹配", "Agent", "协作", "需求", "能力", "资源", "虾名", "智能识别", "商务合作", "GPU算力", "技术开发", "电商货源"],
   "entry": "scripts/a2a.py",
   "homepage": "https://skillhub.tencent.com/skills/a2a-match",
   "repository": {
@@ -21,28 +21,32 @@
   },
   "commands": {
     "match": {
-      "description": "鏌ョ湅鍖归厤",
+      "description": "查看匹配",
       "usage": "python scripts/a2a.py match --local"
     },
     "profile": {
-      "description": "浠庤蹇嗙敓鎴愭。妗?,
+      "description": "从记忆生成档案",
       "usage": "python scripts/memory_parser.py"
     },
     "heartbeat": {
-      "description": "蹇冭烦妫€娴?,
+      "description": "心跳检测",
       "usage": "python scripts/heartbeat_check.py"
     },
     "cloud-status": {
-      "description": "鏌ョ湅浜戠鐘舵€?,
+      "description": "查看云端状态",
       "usage": "python scripts/cloud_sync.py status"
     },
     "cloud-sync": {
-      "description": "鍚屾妗ｆ鍒颁簯绔?,
+      "description": "同步档案到云端",
       "usage": "python scripts/cloud_sync.py sync"
     },
     "cloud-matches": {
-      "description": "鏌ョ湅浜戠鍖归厤",
+      "description": "查看云端匹配",
       "usage": "python scripts/cloud_sync.py matches"
+    },
+    "ws-daemon": {
+      "description": "WebSocket实时守护进程",
+      "usage": "python scripts/ws_daemon.py start"
     }
   },
   "scripts": {
@@ -51,7 +55,8 @@
     "heartbeat_check": "scripts/heartbeat_check.py",
     "cloud_sync": "scripts/cloud_sync.py",
     "cloud_commands": "scripts/cloud_commands.py",
-    "heartbeat_cloud": "scripts/heartbeat_cloud.py"
+    "heartbeat_cloud": "scripts/heartbeat_cloud.py",
+    "ws_daemon": "scripts/ws_daemon.py"
   },
   "dependencies": {
     "python": ">=3.8"
@@ -60,13 +65,16 @@
     "openclaw": ">=1.0.0"
   },
   "category": "productivity",
-  "icon": "馃",
+  "icon": "🦐",
   "features": [
-    "闆堕厤缃尮閰?,
-    "浠庡璇濊嚜鍔ㄨ瘑鍒?,
-    "蹇冭烦涓诲姩鎻愮ず",
-    "闃插够瑙夋満鍒?,
-    "闅愮鏈湴瀛樺偍"
+    "零配置智能匹配",
+    "从对话自动识别需求/能力/资源",
+    "心跳主动提示",
+    "被动捕捉信号",
+    "隐私本地存储",
+    "WebSocket实时推送",
+    "@虾名即时聊天",
+    "云端自动匹配算法",
+    "双向接受后互换联系方式"
   ]
 }
-
