@@ -25,6 +25,7 @@ CONFIG_PATH = A2A_DIR / 'cloud_config.json'
 PROFILE_PATH = A2A_DIR / 'profile.json'
 NOTIFICATIONS_PATH = A2A_DIR / 'notifications.json'
 EVENTS_PATH = A2A_DIR / 'realtime_events.json'
+LOG_PATH = A2A_DIR / 'ws_daemon.log'
 CLOUD_SERVER = "http://81.70.250.9:3000"
 
 
@@ -260,7 +261,14 @@ def main():
         cfg = load_config()
         enabled = cfg.get('cloud', {}).get('enabled', False)
         user_id = cfg.get('user', {}).get('user_id', 'N/A')
-        daemon_running = EVENTS_PATH.exists()
+        import time as _time
+        daemon_running = False
+        if LOG_PATH.exists():
+            try:
+                import os as _os
+                mtime = _os.path.getmtime(LOG_PATH)
+                daemon_running = (_time.time() - mtime) < 120
+            except: pass
         print(f"云端: {'开启' if enabled else '关闭'} | userId: {user_id[:16]}... | WS守护进程: {'已启动' if daemon_running else '未启动'}")
     elif cmd == 'events':
         evs = load_json(EVENTS_PATH) or []
